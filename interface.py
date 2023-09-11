@@ -75,6 +75,7 @@ class App(ctk.CTk):
     def abrir_imagem(self):
         caminho = ctk.filedialog.askopenfilename(title="Selecione uma imagem", filetypes=[("Imagens", ".jpg .jpeg .png .bmp .tif")])
         if caminho:
+            self.imagem_modificada = None
             self.imagem_original = caminho # Armazena o caminho da imagem original
             img = Image.open(caminho)
             self.image_sub_frame.configure(width=img.width)
@@ -84,25 +85,25 @@ class App(ctk.CTk):
             self.image_frame_label.grid(row=0, column=0, sticky="nsew")
         else:
             ctk.messagebox.showerror("Erro", "Nenhuma imagem selecionada!")
+            
+    def atualiza_imagem(self, imagem):
+        self.image_sub_frame.configure(width=imagem.width)
+        self.image_sub_frame.configure(height=imagem.height)
+        img = ctk.CTkImage(light_image=imagem, 
+                           dark_image=imagem, 
+                           size=(imagem.width, imagem.height))
+        self.image_frame_label.configure(image=img)
     
     def acao_desfazer(self):
         if self.imagem_original:
             img = Image.open(self.imagem_original)
-            self.image_sub_frame.configure(width=img.width)
-            self.image_sub_frame.configure(height=img.height)
-            img = ctk.CTkImage(light_image=img, dark_image=img, size=(img.width, img.height))
-            self.image_frame_label.configure(image=img)
+            self.atualiza_imagem(img)
         else:
             ctk.messagebox.showerror("Erro", "Nenhuma imagem modificada!")
             
     def acao_refazer(self):
         if self.imagem_modificada:
-            self.image_sub_frame.configure(width=self.imagem_modificada.width)
-            self.image_sub_frame.configure(height=self.imagem_modificada.height)
-            img = ctk.CTkImage(light_image=self.imagem_modificada, 
-                               dark_image=self.imagem_modificada, 
-                               size=(self.imagem_modificada.width, self.imagem_modificada.height))
-            self.image_frame_label.configure(image=img)
+            self.atualiza_imagem(self.imagem_modificada)
         else:
             ctk.messagebox.showerror("Erro", "Nenhuma imagem modificada!")
         
@@ -124,24 +125,14 @@ class App(ctk.CTk):
     def negativo(self):
         if self.imagem_modificada:
             self.imagem_modificada = Image.fromarray(255 - np.array(self.imagem_modificada))
-            self.image_sub_frame.configure(width=self.imagem_modificada.width)
-            self.image_sub_frame.configure(height=self.imagem_modificada.height)
-            img = ctk.CTkImage(light_image=self.imagem_modificada, 
-                               dark_image=self.imagem_modificada, 
-                               size=(self.imagem_modificada.width, self.imagem_modificada.height))
-            self.image_frame_label.configure(image=img)
+            self.atualiza_imagem(self.imagem_modificada)
         elif self.imagem_original:
             img = Image.open(self.imagem_original)
             img = np.array(img)
             img = 255 - img
             img = Image.fromarray(img)
             self.imagem_modificada = img
-            self.image_sub_frame.configure(width=self.imagem_modificada.width)
-            self.image_sub_frame.configure(height=self.imagem_modificada.height)
-            img = ctk.CTkImage(light_image=self.imagem_modificada, 
-                               dark_image=self.imagem_modificada, 
-                               size=(self.imagem_modificada.width, self.imagem_modificada.height))
-            self.image_frame_label.configure(image=img)
+            self.atualiza_imagem(self.imagem_modificada)
     
     def transforma(self):
         # Esconde o frame do menu e mostra o frame das transformações
@@ -190,9 +181,9 @@ class App(ctk.CTk):
         self.menu_frame.grid(row=0, column=0, padx=(3,3), pady=1, sticky="nsw")
         
         if self.imagem_modificada:
-            self.acao_refazer()
+            self.atualiza_imagem(self.imagem_modificada)
         else:
-            self.acao_desfazer()
+            self.atualiza_imagem(self.imagem_original)
         
     def acao_salvar_brilho(self):
             self.imagem_modificada = self.img_com_brilho
@@ -202,22 +193,12 @@ class App(ctk.CTk):
         if self.imagem_modificada:
             img = ImageEnhance.Brightness(self.imagem_modificada).enhance(float(event))
             self.img_com_brilho = img
-            self.image_sub_frame.configure(width=self.img_com_brilho.width)
-            self.image_sub_frame.configure(height=self.img_com_brilho.height)
-            img = ctk.CTkImage(light_image=self.img_com_brilho, 
-                               dark_image=self.img_com_brilho, 
-                               size=(self.img_com_brilho.width, self.img_com_brilho.height))
-            self.image_frame_label.configure(image=img)
+            self.atualiza_imagem(self.img_com_brilho)
         elif self.imagem_original:
             img = Image.open(self.imagem_original)
             img = ImageEnhance.Brightness(img).enhance(float(event))
             self.img_com_brilho = img
-            self.image_sub_frame.configure(width=self.img_com_brilho.width)
-            self.image_sub_frame.configure(height=self.img_com_brilho.height)
-            img = ctk.CTkImage(light_image=self.img_com_brilho, 
-                               dark_image=self.img_com_brilho, 
-                               size=(self.img_com_brilho.width, self.img_com_brilho.height))
-            self.image_frame_label.configure(image=img)
+            self.atualiza_imagem(self.img_com_brilho)
     
     def acao_salvar_constraste(self):
         self.imagem_modificada = self.img_com_contraste
@@ -227,22 +208,12 @@ class App(ctk.CTk):
         if self.imagem_modificada:
             img = ImageEnhance.Contrast(self.imagem_modificada).enhance(float(event))
             self.img_com_contraste = img
-            self.image_sub_frame.configure(width=img.width)
-            self.image_sub_frame.configure(height=img.height)
-            img = ctk.CTkImage(light_image=img, 
-                               dark_image=img, 
-                               size=(img.width, img.height))
-            self.image_frame_label.configure(image=img)
+            self.atualiza_imagem(self.img_com_contraste)
         elif self.imagem_original:
             img = Image.open(self.imagem_original)
             img = ImageEnhance.Contrast(img).enhance(float(event))
             self.img_com_contraste = img
-            self.image_sub_frame.configure(width=img.width)
-            self.image_sub_frame.configure(height=img.height)
-            img = ctk.CTkImage(light_image=img, 
-                               dark_image=img, 
-                               size=(img.width, img.height))
-            self.image_frame_label.configure(image=img)
+            self.atualiza_imagem(self.img_com_contraste)
 
 if __name__ == "__main__":
     
