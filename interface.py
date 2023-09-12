@@ -11,6 +11,7 @@ class App(ctk.CTk):
         self.imagem_modificada = None
         self.img_com_brilho = None
         self.img_com_contraste = None
+        self.img_com_gama = None
         
         # Configurações da janela =================================================
         ctk.set_default_color_theme("dark-blue")
@@ -75,7 +76,12 @@ class App(ctk.CTk):
     def abrir_imagem(self):
         caminho = ctk.filedialog.askopenfilename(title="Selecione uma imagem", filetypes=[("Imagens", ".jpg .jpeg .png .bmp .tif")])
         if caminho:
+            # Limpa as variáveis de imagem
             self.imagem_modificada = None
+            self.img_com_brilho = None
+            self.img_com_contraste = None
+            self.img_com_gama = None
+            
             self.imagem_original = caminho # Armazena o caminho da imagem original
             img = Image.open(caminho)
             self.image_sub_frame.configure(width=img.width)
@@ -84,7 +90,7 @@ class App(ctk.CTk):
             self.image_frame_label = ctk.CTkLabel(self.image_sub_frame, text=None, image=img)
             self.image_frame_label.grid(row=0, column=0, sticky="nsew")
         else:
-            ctk.messagebox.showerror("Erro", "Nenhuma imagem selecionada!")
+            pass
             
     def atualiza_imagem(self, imagem):
         self.image_sub_frame.configure(width=imagem.width)
@@ -99,13 +105,13 @@ class App(ctk.CTk):
             img = Image.open(self.imagem_original)
             self.atualiza_imagem(img)
         else:
-            ctk.messagebox.showerror("Erro", "Nenhuma imagem modificada!")
+            pass
             
     def acao_refazer(self):
         if self.imagem_modificada:
             self.atualiza_imagem(self.imagem_modificada)
         else:
-            ctk.messagebox.showerror("Erro", "Nenhuma imagem modificada!")
+            pass
         
     def salvar_imagem(self):
         if self.imagem_modificada:
@@ -113,9 +119,9 @@ class App(ctk.CTk):
             if caminho:
                 self.imagem_modificada.save(caminho+self.imagem_original[-4:])
             else:
-                ctk.messagebox.showerror("Erro", "Nenhum caminho selecionado!")
+                pass
         else:
-            ctk.messagebox.showerror("Erro", "Nenhuma imagem modificada!")
+            pass
         
     def verificar_imagem(self):
         print('Verificando imagem...')
@@ -152,10 +158,10 @@ class App(ctk.CTk):
         # botões do frame das transformações
         # negativo
         self.transforma_button_negativo = ctk.CTkButton(self.transforma_frame, text="Negativo", command=self.negativo)
-        self.transforma_button_negativo.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
+        self.transforma_button_negativo.grid(row=1, column=0, padx=10, pady=5, sticky="ew") # Posição 1 em transforma_frame
         # brilho
         self.transforma_frame_brilho = ctk.CTkFrame(self.transforma_frame)
-        self.transforma_frame_brilho.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+        self.transforma_frame_brilho.grid(row=2, column=0, padx=10, pady=5, sticky="ew") # Posição 2 em transforma_frame
         self.transforma_label_brilho = ctk.CTkLabel(self.transforma_frame_brilho, text="Brilho")
         self.transforma_label_brilho.grid(row=0, column=0, padx=(0,10), pady=(0,10), sticky="ew")
         self.transforma_button_brilho = ctk.CTkSlider(self.transforma_frame_brilho, from_= 0.1, to = 1.9,command=self.acao_brilho)
@@ -165,16 +171,29 @@ class App(ctk.CTk):
         self.transforma_button_salvar_brilho.grid(row=2, column=0, padx=(0,10), pady=(0,10), sticky="ew")
         # contraste
         self.transforma_frame_contraste = ctk.CTkFrame(self.transforma_frame)
-        self.transforma_frame_contraste.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
+        self.transforma_frame_contraste.grid(row=3, column=0, padx=10, pady=5, sticky="ew") # Posição 3 em transforma_frame
         self.transforma_label_contraste = ctk.CTkLabel(self.transforma_frame_contraste, text="Contraste")
         self.transforma_label_contraste.grid(row=0, column=0, padx=(0,10), pady=(0,10), sticky="ew")
         self.transforma_button_contraste = ctk.CTkSlider(self.transforma_frame_contraste, from_= 0.1, to = 1.9, command=self.acao_contraste)
         self.transforma_button_contraste.grid(row=1, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        self.transforma_button_contraste.set(1.0)
         self.transforma_button_salvar_contraste = ctk.CTkButton(self.transforma_frame_contraste, text="Salvar Contraste", command=self.acao_salvar_constraste)
         self.transforma_button_salvar_contraste.grid(row=2, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        # gama 
+        self.transforma_frame_gama = ctk.CTkFrame(self.transforma_frame)
+        self.transforma_frame_gama.grid(row=4, column=0, padx=10, pady=5, sticky="ew") # Posição 4 em transforma_frame
+        self.transforma_label_gama = ctk.CTkLabel(self.transforma_frame_gama, text="Gama")
+        self.transforma_label_gama.grid(row=0, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        self.transforma_button_gama = ctk.CTkSlider(self.transforma_frame_gama, from_= 0.1, to = 4.0, command=self.acao_gama)
+        self.transforma_button_gama.grid(row=1, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        self.transforma_button_gama.set(1.0)
+        self.transforma_button_salvar_gama = ctk.CTkButton(self.transforma_frame_gama, text="Salvar Gama", command=self.acao_salvar_gama)
+        self.transforma_button_salvar_gama.grid(row=2, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+            
         
         self.transforma_button_voltar = ctk.CTkButton(self.transforma_frame, text="Voltar", command=self.acao_voltar_menu)
-        self.transforma_button_voltar.grid(row=8, column=0, padx=10, pady=5, sticky="sew")
+        self.transforma_button_voltar.grid(row=8, column=0, padx=10, pady=5, sticky="sew") # Posição 8 em transforma_frame
+        # Fim da criação do frame das transformações ================================================================
     
     def acao_voltar_menu(self):
         self.transforma_frame.grid_forget()
@@ -182,8 +201,9 @@ class App(ctk.CTk):
         
         if self.imagem_modificada:
             self.atualiza_imagem(self.imagem_modificada)
-        else:
-            self.atualiza_imagem(self.imagem_original)
+        elif self.imagem_original:
+            img = Image.open(self.imagem_original)
+            self.atualiza_imagem(img)
         
     def acao_salvar_brilho(self):
             self.imagem_modificada = self.img_com_brilho
@@ -214,6 +234,29 @@ class App(ctk.CTk):
             img = ImageEnhance.Contrast(img).enhance(float(event))
             self.img_com_contraste = img
             self.atualiza_imagem(self.img_com_contraste)
+    
+    def acao_salvar_gama(self):
+        self.imagem_modificada = self.img_com_gama
+        self.transforma_button_gama.set(1.0)
+    
+    def acao_gama(self, event):
+        if self.imagem_modificada:
+            img = np.array(self.imagem_modificada)
+            c = 255.0 / (255.0 ** float(event))
+            img_gamma = c * (img.astype(np.float64)) ** float(event)
+            # Converta a matriz NumPy resultante de volta para uma imagem Pillow
+            img_gamma = img_gamma.round().clip(0, 255).astype(np.uint8)
+            self.img_com_gama = Image.fromarray(img_gamma)
+            self.atualiza_imagem(self.img_com_gama)
+        if self.imagem_original:
+            img = Image.open(self.imagem_original)
+            img = np.array(img)
+            c = 255.0 / (255.0 ** float(event))
+            img_gamma = c * (img.astype(np.float64)) ** float(event)
+            # Converta a matriz NumPy resultante de volta para uma imagem Pillow
+            img_gamma = img_gamma.round().clip(0, 255).astype(np.uint8)
+            self.img_com_gama = Image.fromarray(img_gamma)
+            self.atualiza_imagem(self.img_com_gama)
 
 if __name__ == "__main__":
     
