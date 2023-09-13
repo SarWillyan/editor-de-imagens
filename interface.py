@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from PIL import Image, ImageEnhance
 import numpy as np
+import cv2
 
 class App(ctk.CTk):
     def __init__(self):
@@ -12,6 +13,7 @@ class App(ctk.CTk):
         self.img_com_brilho = None
         self.img_com_contraste = None
         self.img_com_gama = None
+        self.img_com_equalizacao = None
         
         # Configurações da janela =================================================
         ctk.set_default_color_theme("dark-blue")
@@ -189,7 +191,19 @@ class App(ctk.CTk):
         self.transforma_button_gama.set(1.0)
         self.transforma_button_salvar_gama = ctk.CTkButton(self.transforma_frame_gama, text="Salvar Gama", command=self.acao_salvar_gama)
         self.transforma_button_salvar_gama.grid(row=2, column=0, padx=(0,10), pady=(0,10), sticky="ew")
-            
+        # histogramas ---------------------------------------------------------------
+        
+        self.transforma_frame_histogramas = ctk.CTkFrame(self.transforma_frame)
+        self.transforma_frame_histogramas.grid(row=5, column=0, padx=10, pady=5, sticky="ew") # Posição 5 em transforma_frame
+        self.transforma_frame_histogramas.grid_columnconfigure(0, weight=1)
+        self.transforma_label_histogramas = ctk.CTkLabel(self.transforma_frame_histogramas, text="Histogramas",)
+        self.transforma_label_histogramas.grid(row=0, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        self.transforma_button_hist_equalizado = ctk.CTkButton(self.transforma_frame_histogramas, text="Equalizado", command=self.histograma_equalizado)
+        self.transforma_button_hist_equalizado.grid(row=1, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        self.transforma_button_hist_salva_equalizado = ctk.CTkButton(self.transforma_frame_histogramas, text="Salvar Equalização", command=self.acao_salva_equalização)
+        self.transforma_button_hist_salva_equalizado.grid(row=2, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        
+        # ---------------------------------------------------------------------------
         
         self.transforma_button_voltar = ctk.CTkButton(self.transforma_frame, text="Voltar", command=self.acao_voltar_menu)
         self.transforma_button_voltar.grid(row=8, column=0, padx=10, pady=5, sticky="sew") # Posição 8 em transforma_frame
@@ -203,6 +217,7 @@ class App(ctk.CTk):
             self.atualiza_imagem(self.imagem_modificada)
         elif self.imagem_original:
             img = Image.open(self.imagem_original)
+            print(img.mode)
             self.atualiza_imagem(img)
         
     def acao_salvar_brilho(self):
@@ -257,6 +272,45 @@ class App(ctk.CTk):
             img_gamma = img_gamma.round().clip(0, 255).astype(np.uint8)
             self.img_com_gama = Image.fromarray(img_gamma)
             self.atualiza_imagem(self.img_com_gama)
+   
+    def acao_salva_equalização(self):
+        if self.img_com_equalizacao:
+            self.imagem_modificada = self.img_com_equalizacao
+    
+    def histograma_equalizado(self):
+        img = None
+        if self.imagem_modificada:
+            img = self.gerar_histograma_equalizado(self.imagem_modificada)
+        elif self.imagem_original:
+            img = Image.open(self.imagem_original)
+            img = self.gerar_histograma_equalizado(img)
+            
+        if img:
+            self.img_com_equalizacao = img
+            self.atualiza_imagem(img)
+    
+    def gerar_histograma_equalizado(self, imagem):
+        img = cv2.cvtColor(np.array(imagem), cv2.COLOR_RGB2BGR)
+        R = img.shape[0]
+        C = img.shape[1]
+        #calculo do histograma normalizado (pr)
+        hist = cv2.calcHist([img], [0], None, [256], [0, 256]) 
+        pr = hist/(R*C)
+        # cummulative distribution function (CDF)
+        cdf = pr.cumsum()
+        sk = 255 * cdf
+        sk = np.round(sk)
+        
+        # criando a imagem de saída
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img_out = np.zeros(img.shape, dtype=np.uint8)
+        for i in range(256):
+            img_out[img == i] = sk[i]
+        
+        return Image.fromarray(img_out)
+            
+            
+            
 
 if __name__ == "__main__":
     
