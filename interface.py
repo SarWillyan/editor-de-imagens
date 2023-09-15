@@ -2,6 +2,7 @@ import customtkinter as ctk
 from PIL import Image, ImageEnhance
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
 
 class App(ctk.CTk):
     def __init__(self):
@@ -14,6 +15,10 @@ class App(ctk.CTk):
         self.img_com_contraste = None
         self.img_com_gama = None
         self.img_com_equalizacao = None
+        self.img_com_especificacao = None
+        self.img_com_box = None
+        
+        self.zoom = 1.0
         
         # Configurações da janela =================================================
         ctk.set_default_color_theme("dark-blue")
@@ -26,7 +31,7 @@ class App(ctk.CTk):
         
         # Cria o frame do menu e o posiciona na janela principal inicio ================================
         self.menu_frame = ctk.CTkFrame(self)
-        self.menu_frame.grid(row=0, column=0, padx=(3,3), pady=1, sticky="nsw")
+        self.menu_frame.grid(row=0, column=0, padx=(3,3), pady=1, sticky="nsw", rowspan=2)
         
         self.menu_frame.grid_columnconfigure(0, weight=1)
         self.menu_frame.grid_columnconfigure(1, weight=1)
@@ -46,14 +51,29 @@ class App(ctk.CTk):
         self.menu_button_refazer = ctk.CTkButton(self.menu_frame, text=None,image=self.refazer_img, command=self.acao_refazer, anchor="w", width=20, height=20, fg_color='transparent')
         self.menu_button_refazer.grid(row=1, column=1, padx=10, pady=2, sticky="w")
         
+        # zoom
+        self.amplia_img = Image.open("icons/ampliar.png")
+        self.reduz_img = Image.open("icons/reduzir.png")
+        self.amplia_img = ctk.CTkImage(light_image=self.amplia_img, dark_image=self.amplia_img, size=(20, 20))
+        self.reduz_img = ctk.CTkImage(light_image=self.reduz_img, dark_image=self.reduz_img, size=(20, 20))
+        self.opcoes_button_ampliar = ctk.CTkButton(self.menu_frame, text=None,image=self.amplia_img, command=self.amplia, anchor="e", width=20, height=20, fg_color='transparent')
+        self.opcoes_button_ampliar.grid(row=2, column=0, padx=10, pady=2, sticky="e")
+        self.opcoes_button_reduzir = ctk.CTkButton(self.menu_frame, text=None, image=self.reduz_img, command=self.reduz, anchor="w", width=20, height=20, fg_color='transparent')
+        self.opcoes_button_reduzir.grid(row=2, column=1, padx=10, pady=2, sticky="w")
+        
+        # abre imagem
         self.menu_button_abrir = ctk.CTkButton(self.menu_frame, text="Abrir Imagem", command=self.abrir_imagem)
-        self.menu_button_abrir.grid(row=2, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        self.menu_button_abrir.grid(row=3, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        # salva imagem
         self.menu_button_salvar = ctk.CTkButton(self.menu_frame, text="Salvar Imagem", command=self.salvar_imagem)
-        self.menu_button_salvar.grid(row=3, column=0, padx=10, pady=5, sticky="ew", columnspan=2)   
-        self.menu_button_verificar = ctk.CTkButton(self.menu_frame, text="Verificar Imagem", command=self.verificar_imagem)
-        self.menu_button_verificar.grid(row=4, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        self.menu_button_salvar.grid(row=4, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        # transformações
         self.menu_button_transformacoes = ctk.CTkButton(self.menu_frame, text="Transformações", command=self.transforma)
         self.menu_button_transformacoes.grid(row=5, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        # filtros
+        self.menu_button_filtros = ctk.CTkButton(self.menu_frame, text="Filtros", command=self.filtros)
+        self.menu_button_filtros.grid(row=6, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        
         
         # Fim da criação do frame do menu ================================================================
         
@@ -66,7 +86,7 @@ class App(ctk.CTk):
         self.image_frame.grid_rowconfigure(0, weight=1)
         
         # Cria o subframe para a imagem 
-        self.image_sub_frame = ctk.CTkScrollableFrame(self.image_frame, orientation="horizontal")
+        self.image_sub_frame = ctk.CTkScrollableFrame(self.image_frame, orientation="horizontal", height=550)
         self.image_sub_frame.grid(row=0, column=0, sticky="ew")
         
         # Configurações do subframe
@@ -83,7 +103,12 @@ class App(ctk.CTk):
             self.img_com_brilho = None
             self.img_com_contraste = None
             self.img_com_gama = None
+            self.img_com_box = None
+            self.img_com_equalizacao = None
+            self.img_com_especificacao = None
+            self.zoom = 1.0
             
+            # Abre a imagem e a mostra no frame da imagem
             self.imagem_original = caminho # Armazena o caminho da imagem original
             img = Image.open(caminho)
             self.image_sub_frame.configure(width=img.width)
@@ -119,16 +144,14 @@ class App(ctk.CTk):
         if self.imagem_modificada:
             caminho = ctk.filedialog.asksaveasfilename(title="Salvar imagem", filetypes=[("Imagens", ".jpg .jpeg .png .bmp .tif")])
             if caminho:
-                self.imagem_modificada.save(caminho+self.imagem_original[-4:])
+                if self.imagem_original[-4:] == 'jpeg':
+                    self.imagem_modificada.save(caminho+self.imagem_original[-5:])
+                else: 
+                    self.imagem_modificada.save(caminho+self.imagem_original[-4:])
             else:
                 pass
         else:
             pass
-        
-    def verificar_imagem(self):
-        print('Verificando imagem...')
-        print(f'Imagem original: {self.imagem_original}')
-        print(f'Imagem modificada: {self.imagem_modificada}')
         
     def negativo(self):
         if self.imagem_modificada:
@@ -136,10 +159,7 @@ class App(ctk.CTk):
             self.atualiza_imagem(self.imagem_modificada)
         elif self.imagem_original:
             img = Image.open(self.imagem_original)
-            img = np.array(img)
-            img = 255 - img
-            img = Image.fromarray(img)
-            self.imagem_modificada = img
+            self.imagem_modificada = Image.fromarray(255 - np.array(img))
             self.atualiza_imagem(self.imagem_modificada)
     
     def transforma(self):
@@ -192,17 +212,21 @@ class App(ctk.CTk):
         self.transforma_button_salvar_gama = ctk.CTkButton(self.transforma_frame_gama, text="Salvar Gama", command=self.acao_salvar_gama)
         self.transforma_button_salvar_gama.grid(row=2, column=0, padx=(0,10), pady=(0,10), sticky="ew")
         # histogramas ---------------------------------------------------------------
-        
         self.transforma_frame_histogramas = ctk.CTkFrame(self.transforma_frame)
         self.transforma_frame_histogramas.grid(row=5, column=0, padx=10, pady=5, sticky="ew") # Posição 5 em transforma_frame
         self.transforma_frame_histogramas.grid_columnconfigure(0, weight=1)
-        self.transforma_label_histogramas = ctk.CTkLabel(self.transforma_frame_histogramas, text="Histogramas",)
-        self.transforma_label_histogramas.grid(row=0, column=0, padx=(0,10), pady=(0,10), sticky="ew")
-        self.transforma_button_hist_equalizado = ctk.CTkButton(self.transforma_frame_histogramas, text="Equalizado", command=self.histograma_equalizado)
+        self.transforma_label_equalizacao = ctk.CTkLabel(self.transforma_frame_histogramas, text="Equalização")
+        self.transforma_label_equalizacao.grid(row=0, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        self.transforma_button_hist_equalizado = ctk.CTkButton(self.transforma_frame_histogramas, text="Equaliza", command=self.histograma_equalizado)
         self.transforma_button_hist_equalizado.grid(row=1, column=0, padx=(0,10), pady=(0,10), sticky="ew")
         self.transforma_button_hist_salva_equalizado = ctk.CTkButton(self.transforma_frame_histogramas, text="Salvar Equalização", command=self.acao_salva_equalização)
         self.transforma_button_hist_salva_equalizado.grid(row=2, column=0, padx=(0,10), pady=(0,10), sticky="ew")
-        
+        self.transforma_label_especifacao = ctk.CTkLabel(self.transforma_frame_histogramas, text="Especificação")
+        self.transforma_label_especifacao.grid(row=3, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        self.transforma_button_hist_especifica = ctk.CTkButton(self.transforma_frame_histogramas, text="Especifica", command=self.histograma_especificado)
+        self.transforma_button_hist_especifica.grid(row=4, column=0, padx=(0,10), pady=(0,10), sticky="ew")
+        self.transforma_button_hist_salva_especifica = ctk.CTkButton(self.transforma_frame_histogramas, text="Salvar Especificação", command=self.acao_salva_especificacao)
+        self.transforma_button_hist_salva_especifica.grid(row=5, column=0, padx=(0,10), pady=(0,10), sticky="ew")
         # ---------------------------------------------------------------------------
         
         self.transforma_button_voltar = ctk.CTkButton(self.transforma_frame, text="Voltar", command=self.acao_voltar_menu)
@@ -256,23 +280,20 @@ class App(ctk.CTk):
     
     def acao_gama(self, event):
         if self.imagem_modificada:
-            img = np.array(self.imagem_modificada)
-            c = 255.0 / (255.0 ** float(event))
-            img_gamma = c * (img.astype(np.float64)) ** float(event)
-            # Converta a matriz NumPy resultante de volta para uma imagem Pillow
-            img_gamma = img_gamma.round().clip(0, 255).astype(np.uint8)
-            self.img_com_gama = Image.fromarray(img_gamma)
-            self.atualiza_imagem(self.img_com_gama)
+            self.gama(self.imagem_modificada, event)
         if self.imagem_original:
             img = Image.open(self.imagem_original)
-            img = np.array(img)
-            c = 255.0 / (255.0 ** float(event))
-            img_gamma = c * (img.astype(np.float64)) ** float(event)
-            # Converta a matriz NumPy resultante de volta para uma imagem Pillow
-            img_gamma = img_gamma.round().clip(0, 255).astype(np.uint8)
-            self.img_com_gama = Image.fromarray(img_gamma)
-            self.atualiza_imagem(self.img_com_gama)
-   
+            self.gama(img, event)
+    
+    def gama(self, imagem, event):
+        img = np.array(imagem)
+        c = 255.0 / (255.0 ** float(event))
+        img_gamma = c * (img.astype(np.float64)) ** float(event)
+        # Converta a matriz NumPy resultante de volta para uma imagem Pillow
+        img_gamma = img_gamma.round().clip(0, 255).astype(np.uint8)
+        self.img_com_gama = Image.fromarray(img_gamma)
+        self.atualiza_imagem(self.img_com_gama)
+        
     def acao_salva_equalização(self):
         if self.img_com_equalizacao:
             self.imagem_modificada = self.img_com_equalizacao
@@ -291,27 +312,129 @@ class App(ctk.CTk):
     
     def gerar_histograma_equalizado(self, imagem):
         img = cv2.cvtColor(np.array(imagem), cv2.COLOR_RGB2BGR)
-        R = img.shape[0]
-        C = img.shape[1]
-        #calculo do histograma normalizado (pr)
-        hist = cv2.calcHist([img], [0], None, [256], [0, 256]) 
-        pr = hist/(R*C)
-        # cummulative distribution function (CDF)
-        cdf = pr.cumsum()
-        sk = 255 * cdf
-        sk = np.round(sk)
-        
-        # criando a imagem de saída
+        R, G, B = cv2.split(img)
+        output_R = cv2.equalizeHist(R)
+        output_G = cv2.equalizeHist(G)
+        output_B = cv2.equalizeHist(B)
+        img = cv2.merge((output_R, output_G, output_B))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img_out = np.zeros(img.shape, dtype=np.uint8)
-        for i in range(256):
-            img_out[img == i] = sk[i]
-        
-        return Image.fromarray(img_out)
+        plt.plot(img[0])
+        plt.show()
+        return Image.fromarray(img)
             
+    def acao_salva_especificacao(self):
+        if self.img_com_especificacao:
+            self.imagem_modificada = self.img_com_especificacao
+    
+    def histograma_especificado(self):
+        img = None
+        if self.imagem_modificada:
+            img = self.gerar_histograma_especificado(self.imagem_modificada)
+        elif self.imagem_original:
+            img = Image.open(self.imagem_original)
+            img = self.gerar_histograma_especificado(img)
             
-            
+        if img:
+            self.img_com_especificacao = img
+            self.atualiza_imagem(img)
+    
+    def gerar_histograma_especificado(self, imagem):
+        path = ctk.filedialog.askopenfilename(title="Selecione uma imagem", 
+                                              filetypes=[("Imagens", ".jpg .jpeg .png .bmp .tif")])
+        if path:
+            # conversões para o opemCV
+            img_entrada = cv2.cvtColor(np.array(imagem), cv2.COLOR_RGB2BGR)
+            img_ref = np.array(Image.open(path))
+            img_ref = cv2.cvtColor(img_ref, cv2.COLOR_RGB2BGR)
+            # calcula os histogramas normalizados
+            pr = [cv2.calcHist([chan], [0], None, [256], [0, 256]).ravel() for chan in cv2.split(img_entrada)]
+            pz = [cv2.calcHist([chan], [0], None, [256], [0, 256]).ravel() for chan in cv2.split(img_ref)]
+            # calcula os histogramas acumulados
+            cdf_input = [np.cumsum(hist) for hist in pr]
+            cdf_ref = [np.cumsum(hist) for hist in pz]
 
+            img_out = np.zeros(img_entrada.shape, dtype=np.uint8)
+
+            for c in range(3):
+                for i in range(256):
+                    diff = np.absolute(cdf_ref[c] - cdf_input[c][i])
+                    indice = diff.argmin()
+                    img_out[img_entrada[:, :, c] == i, c] = indice
+            
+            img_out = cv2.cvtColor(img_out, cv2.COLOR_BGR2RGB)
+            
+            return Image.fromarray(img_out)
+
+    def amplia(self):
+        self.acao_zoom(0.1)
+        
+    def reduz(self):
+        self.acao_zoom(-0.1)
+
+    def acao_zoom(self, event):
+        if self.imagem_original:
+            self.zoom += float(event)
+            img = Image.open(self.imagem_original)
+            self.aplica_zoom(img)
+            
+    def aplica_zoom(self, imagem):
+        print(imagem.width, imagem.height)
+        print(int(imagem.width*self.zoom), int(imagem.height*self.zoom))
+        img = imagem.resize((int(imagem.width*self.zoom), int(imagem.height*self.zoom)))
+        self.imagem_modificada = img
+        self.atualiza_imagem(img)
+        
+    def filtros(self):
+        # esconde o frame do menu e mostra o frame dos filtros
+        self.menu_frame.grid_forget()
+        
+        # Cria o frame dos filtros e o posiciona na janela principal inicio ================================
+        self.filtros_frame = ctk.CTkFrame(self) 
+        self.filtros_frame.grid(row=0, column=0, padx=(3,3), pady=1, sticky="nsw")
+        # Configurações do frame dos filtros
+        self.filtros_frame.grid_columnconfigure(0, weight=1)
+        self.filtros_frame.grid_rowconfigure(8, weight=1)
+        
+        # titulo do frame dos filtros
+        self.filtros_title = ctk.CTkLabel(self.filtros_frame, text='FILTROS', fg_color="gray30", corner_radius=6)
+        self.filtros_title.grid(row=0, column=0, padx=5, pady=5, sticky="ew", columnspan=2)
+        
+        # botões do frame dos filtros
+        self.salve_img = Image.open("icons/salve.png")
+        self.salve_img = ctk.CTkImage(light_image=self.salve_img, dark_image=self.salve_img, size=(20, 20))
+        
+        # filtro box
+        self.filtros_frame_button_box = ctk.CTkButton(self.filtros_frame, text="Box", command=self.filtro_box)
+        self.filtros_frame_button_box.grid(row=1, column=0, padx=(10,5), pady=5, sticky="ew")
+        self.filtros_frama_button_salvar_box = ctk.CTkButton(self.filtros_frame, text=None, image=self.salve_img, command=self.salvar_box,
+                                                             anchor="w", width=20, height=20, fg_color='transparent')
+        self.filtros_frama_button_salvar_box.grid(row=1, column=1, padx=(5,10), pady=5, sticky="e")
+      
+    def filtro_box(self):
+        if self.imagem_modificada:
+            img = self.box(self.imagem_modificada)
+        elif self.imagem_original:
+            img = Image.open(self.imagem_original)
+            img = self.box(img)
+        
+        if img:
+            self.img_com_box = img
+            self.atualiza_imagem(img)
+            
+    def box(self, imagem):
+        img = np.array(imagem)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        img = cv2.boxFilter(img, -1, (3,3))
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        return Image.fromarray(img)
+    
+    def salvar_box(self):
+        if self.img_com_box:
+            self.imagem_modificada = self.img_com_box
+            self.filtros_frama_button_salvar_box.configure(fg_color="green")
+        else:
+            self.filtros_frama_button_salvar_box.configure(fg_color="red")
+            
 if __name__ == "__main__":
     
     app = App()
