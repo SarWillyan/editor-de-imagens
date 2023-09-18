@@ -17,6 +17,10 @@ class App(ctk.CTk):
         self.img_com_equalizacao = None
         self.img_com_especificacao = None
         self.img_com_box = None
+        self.img_com_laplaciano = None
+        self.img_com_gaussiano = None
+        self.img_com_mediana = None
+        self.img_com_sobel = None
         
         self.zoom = 1.0
         
@@ -99,16 +103,18 @@ class App(ctk.CTk):
         caminho = ctk.filedialog.askopenfilename(title="Selecione uma imagem", filetypes=[("Imagens", ".jpg .jpeg .png .bmp .tif")])
         if caminho:
             # Limpa as variáveis de imagem
+            self.imagem_original = None
             self.imagem_modificada = None
             self.img_com_brilho = None
             self.img_com_contraste = None
             self.img_com_gama = None
-            self.img_com_box = None
             self.img_com_equalizacao = None
             self.img_com_especificacao = None
+            self.img_com_box = None
+            self.img_com_laplaciano = None
             self.img_com_gaussiano = None
             self.img_com_mediana = None
-            self.img_com_laplaciano = None
+            self.img_com_sobel = None
             self.zoom = 1.0
             
             # Abre a imagem e a mostra no frame da imagem
@@ -412,8 +418,6 @@ class App(ctk.CTk):
         self.salve_img = ctk.CTkImage(light_image=self.salve_img, dark_image=self.salve_img, size=(20, 20))
         
         # filtro box
-        self.filtros_frame_input_box = ctk.CTkInputDialog(self.filtros_frame, title="Filtro Box", message="Tamanho da máscara", default=3)
-        self.filtros_frame_input_box.grid(row=1, column=0, padx=(10,5), pady=5, sticky="ew")
         self.filtros_frame_button_box = ctk.CTkButton(self.filtros_frame, text="Box", command=self.filtro_box)
         self.filtros_frame_button_box.grid(row=1, column=0, padx=(10,5), pady=5, sticky="ew")
         self.filtros_frame_button_salvar_box = ctk.CTkButton(self.filtros_frame, text=None, image=self.salve_img, command=self.salvar_box,
