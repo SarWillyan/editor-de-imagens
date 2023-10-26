@@ -417,11 +417,11 @@ class App(ctk.CTk):
         self.filtros_title = ctk.CTkLabel(self.filtros_frame, text='FILTROS', fg_color="gray30", corner_radius=6)
         self.filtros_title.grid(row=0, column=0, padx=5, pady=5, sticky="ew", columnspan=2)
         
-        # botões do frame dos filtros
+        # botões do frame dos filtros -------------------------------------------------------------------------
         self.salve_img = Image.open("icons/salve.png")
         self.salve_img = ctk.CTkImage(light_image=self.salve_img, dark_image=self.salve_img, size=(20, 20))
         
-        # filtro box
+        # filtro box -------------------------------------------------------------------------------------------
         self.filtros_frame_input_box = ctk.CTkEntry(self.filtros_frame, validate="key", validatecommand=(validacao, '%S'))
         self.filtros_frame_input_box.grid(row=1, column=0, padx=(10,5), pady=(5,0), sticky="ew")
         self.filtros_frame_button_box = ctk.CTkButton(self.filtros_frame, text="Box", command=self.filtro_box)
@@ -430,7 +430,7 @@ class App(ctk.CTk):
                                                              anchor="w", width=20, height=20, fg_color='transparent')
         self.filtros_frame_button_salvar_box.grid(row=2, column=1, padx=(5,10), pady=5, sticky="e")
         
-        # filtro gaussiano
+        # filtro gaussiano -------------------------------------------------------------------------------------------
         self.filtros_frame_input_gaussiano = ctk.CTkEntry(self.filtros_frame, validate="key", validatecommand=(validacao, '%S'))
         self.filtros_frame_input_gaussiano.grid(row=3, column=0, padx=(10,5), pady=(5,0), sticky="ew")
         self.filtros_frame_button_gaussiano = ctk.CTkButton(self.filtros_frame, text="Gaussiano", command=self.filtro_gaussiano)
@@ -439,7 +439,7 @@ class App(ctk.CTk):
                                                              anchor="w", width=20, height=20, fg_color='transparent')
         self.filtros_frame_button_salvar_gaussiano.grid(row=4, column=1, padx=(5,10), pady=5, sticky="e")
        
-        # filtro mediana
+        # filtro mediana -------------------------------------------------------------------------------------------
         self.filtros_frame_input_mediana = ctk.CTkEntry(self.filtros_frame, validate="key", validatecommand=(validacao, '%S'))
         self.filtros_frame_input_mediana.grid(row=5, column=0, padx=(10,5), pady=(5,0), sticky="ew")
         self.filtros_frame_button_mediana = ctk.CTkButton(self.filtros_frame, text="Mediana", command=self.filtro_mediana)
@@ -448,7 +448,7 @@ class App(ctk.CTk):
                                                              anchor="w", width=20, height=20, fg_color='transparent')
         self.filtros_frame_button_salvar_mediana.grid(row=6, column=1, padx=(5,10), pady=5, sticky="e")
         
-        # filtro laplaciano
+        # filtro laplaciano -------------------------------------------------------------------------------------------
         self.filtros_frame_input_laplaciano = ctk.CTkEntry(self.filtros_frame, validate="key", validatecommand=(validacao, '%S'))
         self.filtros_frame_input_laplaciano.grid(row=7, column=0, padx=(10,5), pady=(5,0), sticky="ew")
         self.filtros_frame_button_laplaciano = ctk.CTkButton(self.filtros_frame, text="Laplaciano", command=self.filtro_laplaciano)
@@ -456,7 +456,7 @@ class App(ctk.CTk):
         self.filtros_frame_button_salvar_laplaciano = ctk.CTkButton(self.filtros_frame, text=None, image=self.salve_img, command=self.salvar_laplaciano,
                                                              anchor="w", width=20, height=20, fg_color='transparent')
         self.filtros_frame_button_salvar_laplaciano.grid(row=8, column=1, padx=(5,10), pady=5, sticky="e")
-        # filtro sobel
+        # filtro sobel -------------------------------------------------------------------------------------------
         self.filtros_frame_input_sobel = ctk.CTkEntry(self.filtros_frame, validate="key", validatecommand=(validacao, '%S'))
         self.filtros_frame_input_sobel.grid(row=9, column=0, padx=(10,5), pady=(5,0), sticky="ew")
         self.filtros_frame_button_sobel = ctk.CTkButton(self.filtros_frame, text="Sobel", command=self.filtro_sobel)
@@ -464,6 +464,42 @@ class App(ctk.CTk):
         self.filtros_frame_button_salvar_sobel = ctk.CTkButton(self.filtros_frame, text=None, image=self.salve_img, command=self.salvar_sobel,
                                                              anchor="w", width=20, height=20, fg_color='transparent')
         self.filtros_frame_button_salvar_sobel.grid(row=10, column=1, padx=(5,10), pady=5, sticky="e")
+        
+        # filtro canny -------------------------------------------------------------------------------------------
+        self.filtros_frame_canny = ctk.CTkFrame(self.filtros_frame) # tela do canny
+        self.filtros_frame_canny.grid(row=11, column=0, padx=10, pady=10, sticky="ew", columnspan=2)
+        self.filtros_frame_canny.grid_columnconfigure(0, weight=1)
+        # kernel gauss
+        self.filtros_frame_label_canny_gauss = ctk.CTkLabel(self.filtros_frame_canny, text="Kernel Gauss")
+        self.filtros_frame_label_canny_gauss.grid(row=0, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        self.filtros_frame_input_canny_gauss = ctk.CTkEntry(self.filtros_frame_canny, validate="key", validatecommand=(validacao, '%S'),
+                                                            width=20, height=20,)
+        self.filtros_frame_input_canny_gauss.grid(row=0, column=1, padx=(0,10), pady=(0,0), sticky="ew")
+        # threshold min
+        self.filtros_frame_label_canny_min = ctk.CTkLabel(self.filtros_frame_canny, text="limiar Min")
+        self.filtros_frame_label_canny_min.grid(row=2, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        self.filtros_frame_input_canny_min = ctk.CTkEntry(self.filtros_frame_canny, validate="key", validatecommand=(validacao, '%S'),
+                                                          width=20, height=20,)
+        self.filtros_frame_input_canny_min.grid(row=2, column=1, padx=(0,10), pady=(0,0), sticky="ew")
+        # threshold max
+        self.filtros_frame_label_canny_max = ctk.CTkLabel(self.filtros_frame_canny, text="limiar Max")
+        self.filtros_frame_label_canny_max.grid(row=3, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        self.filtros_frame_input_canny_max = ctk.CTkEntry(self.filtros_frame_canny, validate="key", validatecommand=(validacao, '%S'),
+                                                          width=20, height=20,)
+        self.filtros_frame_input_canny_max.grid(row=3, column=1, padx=(0,10), pady=(0,0), sticky="ew")
+        # kernel sobel
+        self.filtros_frame_label_canny_sobel = ctk.CTkLabel(self.filtros_frame_canny, text="Kernel Sobel")
+        self.filtros_frame_label_canny_sobel.grid(row=4, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        self.filtros_frame_input_canny_sobel = ctk.CTkEntry(self.filtros_frame_canny, validate="key", validatecommand=(validacao, '%S'),
+                                                            width=20, height=20,)
+        self.filtros_frame_input_canny_sobel.grid(row=4, column=1, padx=(0,10), pady=(0,0), sticky="ew")
+        # botão de aplicar o filtro canny
+        self.filtros_frame_button_canny = ctk.CTkButton(self.filtros_frame_canny, text="Canny", command=self.filtro_canny)
+        self.filtros_frame_button_canny.grid(row=5, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        # icon de salvar
+        self.filtros_frame_button_salvar_canny = ctk.CTkButton(self.filtros_frame_canny, text=None, image=self.salve_img,
+                                                                anchor="w", width=20, height=20, fg_color='transparent')
+        self.filtros_frame_button_salvar_canny.grid(row=5, column=1, padx=(5,10), pady=(0,10), sticky="e")
         
         
         # voltar
@@ -484,6 +520,7 @@ class App(ctk.CTk):
     def box(self, imagem):
         img = np.array(imagem)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        print(self.filtros_frame_input_box)
         kernel = int(self.filtros_frame_input_box.get())
         img = cv2.boxFilter(img, -1, (kernel,kernel))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -554,8 +591,8 @@ class App(ctk.CTk):
         img = np.array(imagem)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         kernel = int(self.filtros_frame_input_laplaciano.get())
-        img = cv2.Laplacian(img, cv2.CV_64F, ksize=kernel)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.Laplacian(img, cv2.CV_8U, ksize=kernel)
+        img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2GRAY)
         return Image.fromarray(img)
     
     def salvar_laplaciano(self):
@@ -591,7 +628,28 @@ class App(ctk.CTk):
     def salvar_sobel(self):
         if self.img_com_sobel:
             self.imagem_modificada = self.img_com_sobel
-            
+ 
+    def filtro_canny(self):
+        if self.imagem_modificada:
+            img = self.canny(self.imagem_modificada)
+        elif self.imagem_original:
+            img = Image.open(self.imagem_original)
+            img = self.canny(img)
+        
+        if img:
+            self.img_com_canny = img
+            self.atualiza_imagem(img)
+    
+    def canny(self, imagem):
+        img = np.array(imagem)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        kernelGauss = int(self.filtros_frame_input_canny_gauss.get())
+        img = cv2.GaussianBlur(img, (kernelGauss,kernelGauss), 1)
+        min = int(self.filtros_frame_input_canny_min.get())
+        max = int(self.filtros_frame_input_canny_max.get())
+        kernelS = int(self.filtros_frame_input_canny_sobel.get())
+        img = cv2.Canny(image=img, threshold1=min, threshold2=max, apertureSize=kernelS)
+        return Image.fromarray(img)           
 if __name__ == "__main__":
     
     app = App()
