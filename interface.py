@@ -1,3 +1,4 @@
+import math
 import customtkinter as ctk
 from PIL import Image, ImageEnhance
 import numpy as np
@@ -413,7 +414,7 @@ class App(ctk.CTk):
         validacao = self.filtros_frame.register(self.is_numbers)
         # Configurações do frame dos filtros
         self.filtros_frame.grid_columnconfigure(0, weight=1)
-        self.filtros_frame.grid_rowconfigure(12, weight=1)
+        self.filtros_frame.grid_rowconfigure(13, weight=1)
         
         # titulo do frame dos filtros
         self.filtros_title = ctk.CTkLabel(self.filtros_frame, text='FILTROS', fg_color="gray30", corner_radius=6)
@@ -503,10 +504,46 @@ class App(ctk.CTk):
                                                                 anchor="w", width=20, height=20, fg_color='transparent', command=self.salvar_canny)
         self.filtros_frame_button_salvar_canny.grid(row=5, column=1, padx=(5,10), pady=(0,10), sticky="e")
         
+        # filtro hough -------------------------------------------------------------------------------------------
+        self.filtros_frame_hough = ctk.CTkFrame(self.filtros_frame) # tela do hough
+        self.filtros_frame_hough.grid(row=12, column=0, padx=10, pady=10, sticky="ew", columnspan=2)
+        # kernel gauss
+        self.filtros_frame_label_hough_gauss = ctk.CTkLabel(self.filtros_frame_hough, text="Kernel Gauss")
+        self.filtros_frame_label_hough_gauss.grid(row=0, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        self.filtros_frame_input_hough_gauss = ctk.CTkEntry(self.filtros_frame_hough, validate="key", validatecommand=(validacao, '%S'),
+                                                            width=20, height=20,)
+        self.filtros_frame_input_hough_gauss.grid(row=0, column=1, padx=(0,10), pady=(0,0), sticky="ew")
+        # canny ---------------
+        # threshold min
+        self.filtros_frame_label_hough_canny_limiar_min = ctk.CTkLabel(self.filtros_frame_hough, text="Canny limiar Min")
+        self.filtros_frame_label_hough_canny_limiar_min.grid(row=2, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        self.filtros_frame_input_hough_canny_limiar_min = ctk.CTkEntry(self.filtros_frame_hough, validate="key", validatecommand=(validacao, '%S'),
+                                                          width=20, height=20,)
+        self.filtros_frame_input_hough_canny_limiar_min.grid(row=2, column=1, padx=(0,10), pady=(0,0), sticky="ew")
+        # threshold max
+        self.filtros_frame_label_hough_canny_limiar_max = ctk.CTkLabel(self.filtros_frame_hough, text="Canny limiar Max")
+        self.filtros_frame_label_hough_canny_limiar_max.grid(row=3, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        self.filtros_frame_input_hough_canny_limiar_max = ctk.CTkEntry(self.filtros_frame_hough, validate="key", validatecommand=(validacao, '%S'),
+                                                            width=20, height=20,)
+        self.filtros_frame_input_hough_canny_limiar_max.grid(row=3, column=1, padx=(0,10), pady=(0,0), sticky="ew")
+        # canny ---------------
+        # limiar hough
+        self.filtros_frame_label_hough_limiar = ctk.CTkLabel(self.filtros_frame_hough, text="Limiar Hough")
+        self.filtros_frame_label_hough_limiar.grid(row=4, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        self.filtros_frame_input_hough_limiar = ctk.CTkEntry(self.filtros_frame_hough, validate="key", validatecommand=(validacao, '%S'),
+                                                            width=20, height=20,)
+        self.filtros_frame_input_hough_limiar.grid(row=4, column=1, padx=(0,10), pady=(0,0), sticky="ew")
+        # botão de aplicar o filtro hough
+        self.filtros_frame_button_hough = ctk.CTkButton(self.filtros_frame_hough, text="Hough", command=self.filtro_hough)
+        self.filtros_frame_button_hough.grid(row=5, column=0, padx=(0,10), pady=(0,0), sticky="ew")
+        # icon de salvar
+        self.filtros_frame_button_salvar_hough = ctk.CTkButton(self.filtros_frame_hough, text=None, image=self.salve_img,
+                                                                anchor="w", width=20, height=20, fg_color='transparent', command=self.salvar_hough)
+        self.filtros_frame_button_salvar_hough.grid(row=5, column=1, padx=(5,10), pady=(0,10), sticky="e")
         
         # voltar
         self.filtros_frame_button_voltar = ctk.CTkButton(self.filtros_frame, text="Voltar", command=self.acao_voltar_menu)
-        self.filtros_frame_button_voltar.grid(row=12, column=0, padx=10, pady=5, sticky="sew", columnspan=2)
+        self.filtros_frame_button_voltar.grid(row=13, column=0, padx=10, pady=5, sticky="sew", columnspan=2)
       
     def filtro_box(self):
         if self.imagem_modificada:
@@ -656,7 +693,55 @@ class App(ctk.CTk):
     def salvar_canny(self):
         if self.img_com_canny:
             self.imagem_modificada = self.img_com_canny 
-           
+     
+    def filtro_hough(self):
+        if self.imagem_modificada:
+            img = self.hough(self.imagem_modificada)
+        elif self.imagem_original:
+            img = Image.open(self.imagem_original)
+            img = self.hough(img)
+        
+        if img:
+            self.img_com_hough = img
+            self.atualiza_imagem(img)
+    
+    def hough(self, imagem):
+        img = np.array(imagem)
+        imgGray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        
+        kernelGauss = int(self.filtros_frame_input_hough_gauss.get())
+        imgGauss = cv2.GaussianBlur(imgGray, (kernelGauss,kernelGauss), 0, borderType=0)
+        
+        minC = int(self.filtros_frame_input_hough_canny_limiar_min.get())
+        maxC = int(self.filtros_frame_input_hough_canny_limiar_max.get())
+        imgCanny = cv2.Canny(image=imgGauss, threshold1=minC, threshold2=maxC, apertureSize=3, L2gradient=False)
+        
+        imgHough = cv2.cvtColor(imgCanny, cv2.COLOR_GRAY2BGR)
+        
+        limiarH = int(self.filtros_frame_input_hough_limiar.get())
+        lines = cv2.HoughLines(imgCanny, 1, np.pi/180, limiarH)
+        # Draw the lines
+        if lines is not None:
+            for i in range(0, len(lines)):
+                rho = lines[i][0][0]
+                theta = lines[i][0][1]
+                a = math.cos(theta)
+                b = math.sin(theta)
+                x0 = a * rho
+                y0 = b * rho
+                pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+                pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+
+                cv2.line(img, pt1, pt2, (255,0,0), 3, cv2.LINE_AA)
+        ## [draw_lines]
+
+        print("houg finish")
+        return Image.fromarray(img)
+    
+    def salvar_hough(self):
+        if self.img_com_hough:
+            self.imagem_modificada = self.img_com_hough
+              
 if __name__ == "__main__":
     
     app = App()
