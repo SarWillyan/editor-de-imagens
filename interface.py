@@ -22,6 +22,7 @@ class App(ctk.CTk):
         self.img_com_gaussiano = None
         self.img_com_mediana = None
         self.img_com_sobel = None
+        self.img_com_canny = None
         
         self.zoom = 1.0
         
@@ -118,6 +119,7 @@ class App(ctk.CTk):
             self.img_com_gaussiano = None
             self.img_com_mediana = None
             self.img_com_sobel = None
+            self.img_com_canny = None
             self.zoom = 1.0
             
             # Abre a imagem e a mostra no frame da imagem
@@ -498,7 +500,7 @@ class App(ctk.CTk):
         self.filtros_frame_button_canny.grid(row=5, column=0, padx=(0,10), pady=(0,0), sticky="ew")
         # icon de salvar
         self.filtros_frame_button_salvar_canny = ctk.CTkButton(self.filtros_frame_canny, text=None, image=self.salve_img,
-                                                                anchor="w", width=20, height=20, fg_color='transparent')
+                                                                anchor="w", width=20, height=20, fg_color='transparent', command=self.salvar_canny)
         self.filtros_frame_button_salvar_canny.grid(row=5, column=1, padx=(5,10), pady=(0,10), sticky="e")
         
         
@@ -644,12 +646,17 @@ class App(ctk.CTk):
         img = np.array(imagem)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         kernelGauss = int(self.filtros_frame_input_canny_gauss.get())
-        img = cv2.GaussianBlur(img, (kernelGauss,kernelGauss), 1)
+        img = cv2.GaussianBlur(img, (kernelGauss,kernelGauss), 0, borderType=0)
         min = int(self.filtros_frame_input_canny_min.get())
         max = int(self.filtros_frame_input_canny_max.get())
         kernelS = int(self.filtros_frame_input_canny_sobel.get())
-        img = cv2.Canny(image=img, threshold1=min, threshold2=max, apertureSize=kernelS)
-        return Image.fromarray(img)           
+        img = cv2.Canny(image=img, threshold1=min, threshold2=max, apertureSize=kernelS, L2gradient=False)
+        return Image.fromarray(img)   
+    
+    def salvar_canny(self):
+        if self.img_com_canny:
+            self.imagem_modificada = self.img_com_canny 
+           
 if __name__ == "__main__":
     
     app = App()
